@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tuntu"
+dynamic = ["version"]
+description = "吞吐：本机 Claude Code token 用量看板。A local, zero-dependency dashboard for Claude Code token usage."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["claude", "claude-code", "tokens", "usage", "dashboard"]
+classifiers = [
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Natural Language :: Chinese (Simplified)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.scripts]
+tuntu = "tuntu.cli:main"
+
+[tool.setuptools]
+packages = ["tuntu"]
+
+[tool.setuptools.dynamic]
+version = { attr = "tuntu.__version__" }
+
+[tool.setuptools.package-data]
+tuntu = ["web/*.html"]

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+dist/
+build/
+*.egg-info/
+.venv/
+# 密钥和令牌，绝不提交
+.env
+.env.*
+# 导出的用量数据可能含有项目名，不要提交
+*.usage.json

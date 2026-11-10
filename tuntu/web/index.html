@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>吞吐 · 我的 Token 都去哪了</title>
+<!--FONTS-->
+<style>
+:root {
+  --ink: #111318; --bg: #EEF0F7; --muted: #3C4150; --white: #FFFFFF;
+  --yellow: #FFD43B; --blue: #3550E8; --orange: #FF7A3D; --mint: #7CE3B1; --pink: #FFB3DD; --sky: #C3CEFF;
+  --num: "Bricolage Grotesque", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --cn: "ZCOOL QingKe HuangYou", "Yuanti SC", "YouYuan", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--num); font-variant-numeric: tabular-nums; }
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 36px 24px 56px; display: flex; flex-direction: column; gap: 24px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; }
+.tile { min-width: 0; background: var(--white); border: 2.5px solid var(--ink); border-radius: 22px; box-shadow: 6px 6px 0 var(--ink); padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+.h { font-size: 20px; font-weight: 700; }
+.sub { font-size: 14px; font-weight: 500; color: var(--muted); }
+.cap { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cn { font-family: var(--cn); font-weight: 700; }
+.scroll { overflow-x: auto; }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: baseline; flex-wrap: wrap; gap: 14px; }
+.brand .logo { font-size: 60px; line-height: 1; }
+.tag { font-size: 17px; font-weight: 700; background: var(--ink); color: var(--white); padding: 6px 12px; border-radius: 999px; transform: rotate(-2deg); }
+.tag.demo { background: var(--orange); color: var(--ink); border: 2px solid var(--ink); transform: rotate(2deg); }
+.controls, .pills { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pill { min-height: 44px; padding: 0 18px; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--white); font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.pill[aria-pressed="true"] { background: var(--ink); color: var(--white); }
+.pill.small { padding: 0 14px; border-width: 2px; font-size: 14px; }
+.pill.go { background: var(--mint); box-shadow: 3px 3px 0 var(--ink); }
+.pill.back { box-shadow: 3px 3px 0 var(--ink); }
+.pill:focus-visible, a.srow:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+.hero { flex: 3 1 520px; background: var(--yellow); padding: 28px 32px; gap: 10px; }
+.hero .line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 14px; }
+.hero .n { font-size: clamp(84px, 12vw, 172px); font-weight: 800; line-height: 0.9; letter-spacing: -0.04em; }
+.hero .u { font-size: 72px; line-height: 1; }
+.hero .t { font-size: 22px; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.chip { font-size: 15px; font-weight: 700; background: var(--white); border: 2px solid var(--ink); border-radius: 999px; padding: 7px 14px; }
+.chip.s { font-size: 14px; padding: 6px 14px; }
+.side { flex: 2 1 380px; padding: 28px 32px; gap: 12px; }
+.side .n { font-size: 84px; font-weight: 800; line-height: 0.95; letter-spacing: -0.03em; }
+.ratio { background: var(--blue); color: var(--white); }
+.dots { display: flex; flex-wrap: wrap; gap: 3px; }
+.dots i { width: 7px; height: 7px; border-radius: 2px; background: var(--sky); }
+.dots i.w { background: var(--orange); }
+
+.hit { flex: 1 1 250px; background: var(--mint); }
+.hit .n { font-size: 64px; font-weight: 800; line-height: 0.95; letter-spacing: -0.03em; }
+.waffle { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; max-width: 216px; }
+.waffle i { aspect-ratio: 1 / 1; border: 2px solid var(--ink); border-radius: 4px; }
+.waffle i.on { background: var(--ink); }
+.daily { flex: 3 1 460px; }
+.bars { display: flex; align-items: flex-end; height: 236px; }
+.bars .col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bars .tg { font-size: 12px; font-weight: 800; white-space: nowrap; height: 16px; }
+.bars .b { width: 100%; background: var(--blue); border: 2px solid var(--ink); border-radius: 6px 6px 0 0; }
+.bars .b.pk { background: var(--orange); }
+.bars .b.z { border: 0; background: transparent; }
+.xl { display: flex; }
+.xl span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 11px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.clockt { flex: 1 1 280px; background: var(--pink); align-items: center; gap: 12px; }
+.clock { position: relative; width: 240px; height: 240px; }
+.clock .hb { position: absolute; left: 50%; top: 50%; width: 12px; margin-left: -6px; background: var(--ink); border: 2px solid var(--ink); border-radius: 0 0 6px 6px; transform-origin: 50% 0; }
+.clock .hb.pk { background: var(--yellow); }
+.clock .mid { position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--ink); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+.clock .l { position: absolute; font-size: 12px; font-weight: 700; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 20px; }
+.badge { flex: 1 1 190px; min-width: 0; border: 2.5px solid var(--ink); border-radius: 18px; box-shadow: 4px 4px 0 var(--ink); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.badge .k { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+.badge .ti { font-size: 28px; line-height: 1.15; }
+.badge .li { font-size: 14px; font-weight: 500; }
+.badge.locked { background: transparent !important; border-style: dashed; box-shadow: none; color: var(--muted); transform: none !important; }
+
+.stack { display: flex; height: 34px; border: 2.5px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--bg); }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 14px; }
+.legend .it { display: flex; gap: 10px; align-items: flex-start; }
+.sw { width: 16px; height: 16px; border: 2px solid var(--ink); border-radius: 5px; margin-top: 2px; flex: none; }
+.legend b { display: block; font-size: 15px; }
+.legend span { font-size: 13px; font-weight: 500; color: var(--muted); }
+.erow { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 700; }
+.erow .nm { flex: 1 1 auto; }
+.erow .dt { width: 160px; flex: none; text-align: right; font-size: 13px; font-weight: 500; color: var(--muted); }
+
+.rank { display: flex; flex-direction: column; gap: 8px; }
+.rank .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rank .nm { font-size: 17px; font-weight: 800; min-width: 0; overflow-wrap: anywhere; }
+.rank .vv { font-size: 15px; font-weight: 700; flex: none; }
+.meter { height: 16px; border: 2px solid var(--ink); border-radius: 8px; overflow: hidden; background: var(--bg); }
+.meter i { display: block; height: 100%; border-right: 2px solid var(--ink); }
+.meter.thin { height: 14px; border-radius: 7px; }
+.meter.thin i { border-right: 0; }
+
+.heat { min-width: 560px; display: flex; flex-direction: column; gap: 4px; }
+.heat .hr { display: flex; align-items: center; gap: 4px; }
+.heat .wl { width: 36px; flex: none; font-size: 13px; font-weight: 700; }
+.heat .c { flex: 1 1 0; height: 26px; border-radius: 5px; background: var(--bg); }
+.heat .hl { flex: 1 1 0; font-size: 11px; font-weight: 500; color: var(--muted); text-align: center; }
+.trow { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; }
+.trow .nm { width: 118px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trow .meter { flex: 1 1 auto; }
+.trow .ct { width: 60px; flex: none; text-align: right; }
+
+.slist { min-width: 860px; display: flex; flex-direction: column; gap: 10px; padding: 0 6px 6px 0; }
+a.srow { display: grid; grid-template-columns: 44px 1.1fr 1.7fr 0.8fr 2fr 0.9fr 0.8fr 0.7fr; gap: 14px; align-items: center; min-height: 56px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); background: var(--white); text-decoration: none; font-size: 15px; font-weight: 700; }
+a.srow:hover { background: #F7F8FC; transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.medal { width: 36px; height: 36px; border: 2px solid var(--ink); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.r { text-align: right; }
+.lt { font-weight: 500; }
+.ell { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 20px; }
+.kpi { border: 2.5px solid var(--ink); border-radius: 18px; box-shadow: 4px 4px 0 var(--ink); padding: 18px 22px; display: flex; flex-direction: column; gap: 4px; background: var(--white); }
+.kpi .k { font-size: 15px; font-weight: 700; }
+.kpi .v { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.kpi .s { font-size: 13px; font-weight: 500; }
+.ctxwrap { min-width: 760px; display: flex; gap: 10px; }
+.yax { display: flex; flex-direction: column; justify-content: space-between; height: 276px; padding-top: 20px; font-size: 12px; font-weight: 700; text-align: right; width: 52px; flex: none; }
+.ctx { display: flex; align-items: flex-end; gap: 3px; height: 276px; border-bottom: 2.5px solid var(--ink); }
+.ctx .b { border-bottom: 0; border-radius: 5px 5px 0 0; }
+.ctx .tg { font-size: 11px; }
+.duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.duo > div { border: 2px solid var(--ink); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+.duo .k { font-size: 14px; font-weight: 700; }
+.duo .v { font-size: 30px; font-weight: 800; line-height: 1.1; }
+.duo .s { font-size: 13px; font-weight: 500; }
+.tip { margin-top: auto; align-self: flex-start; background: var(--yellow); border: 2.5px solid var(--ink); border-radius: 16px; box-shadow: 4px 4px 0 var(--ink); padding: 14px 18px; font-size: 15px; font-weight: 700; line-height: 1.5; transform: rotate(-1.5deg); }
+
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.empty { align-items: flex-start; }
+@media (max-width: 560px) {
+  .wrap { padding: 24px 16px 40px; }
+  .tile { padding: 20px; box-shadow: 4px 4px 0 var(--ink); }
+  .brand .logo { font-size: 48px; }
+  .side .n { font-size: 64px; }
+  .hero .u { font-size: 52px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="tile"><div class="h">正在扫描日志…</div></div></div>
+<script>
+'use strict';
+// bucket 行的字段下标：日期、小时、项目、模型、是否子代理、推理强度、新输入、输出、缓存写入、缓存读取、其中 1 小时档写入、请求数
+const D = 0, HOUR = 1, P = 2, M = 3, SIDE = 4, EFF = 5, IN = 6, OUT = 7, CW = 8, CR = 9, H1 = 10, REQ = 11;
+const WK = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const COLORS = { cr: 'var(--blue)', cw: 'var(--sky)', out: 'var(--orange)', inp: 'var(--ink)' };
+const app = document.getElementById('app');
+const state = { range: 'all', metric: 'total', busy: false };
+let DATA = null;
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = (n) => Math.round(n).toLocaleString('zh-CN');
+const fmt = (n) => n >= 1e8 ? (n / 1e8).toFixed(2) + ' 亿' : n >= 1e4 ? (n / 1e4).toFixed(n >= 1e6 ? 0 : 1) + ' 万' : num(n);
+const pct = (a, b, d = 2) => b ? (100 * a / b).toFixed(d) + '%' : '—';
+const pad = (n) => String(n).padStart(2, '0');
+const dstr = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parseD = (s) => new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const weekday = (s) => (parseD(s).getDay() + 6) % 7;
+const md = (s) => s.slice(5, 10);
+const sum4 = (a) => a[0] + a[1] + a[2] + a[3];
+const hitOf = (a) => 100 * a[3] / ((a[0] + a[2] + a[3]) || 1);
+
+function modelName(id) {
+  const parts = String(id).replace(/^claude-/, '').replace(/-\d{8}$/, '').split('-');
+  const out = [];
+  for (const p of parts) {
+    if (/^\d+$/.test(p) && out.length && /^[\d.]+$/.test(out[out.length - 1])) out[out.length - 1] += '.' + p;
+    else out.push(/^\d+$/.test(p) ? p : p.charAt(0).toUpperCase() + p.slice(1));
+  }
+  return out.join(' ');
+}
+function spanText(a, b) {
+  const mins = Math.max(0, (new Date(b) - new Date(a)) / 60000);
+  if (mins < 60) return [Math.max(1, Math.round(mins)), '分钟'];
+  if (mins < 72 * 60) return [Math.round(mins / 60), '小时'];
+  return [Math.round(mins / 1440), '天'];
+}
+const when = (s) => s.slice(5, 10) + ' ' + s.slice(11, 16);
+
+// ---------------------------------------------------------------- 计算
+
+function compute(range) {
+  const today = dstr(new Date());
+  const back = { '30': 29, '7': 6, '1': 0 }[range];
+  const cutoff = range === 'all' ? null : dstr(addDays(new Date(), -back));
+  const rows = cutoff ? DATA.buckets.filter((b) => b[D] >= cutoff) : DATA.buckets;
+  const S = [0, 0, 0, 0, 0];            // 新输入、输出、缓存写入、缓存读取、请求
+  let h1 = 0, sideTok = 0, sideReq = 0;
+  const perDay = new Map(), byM = new Map(), byP = new Map(), byE = new Map();
+  const hours = Array(24).fill(0);
+  const heat = WK.map(() => Array(24).fill(0));
+  const add = (map, key, b) => {
+    let a = map.get(key);
+    if (!a) map.set(key, a = [0, 0, 0, 0, 0]);
+    a[0] += b[IN]; a[1] += b[OUT]; a[2] += b[CW]; a[3] += b[CR]; a[4] += b[REQ];
+  };
+  for (const b of rows) {
+    const t = b[IN] + b[OUT] + b[CW] + b[CR];
+    S[0] += b[IN]; S[1] += b[OUT]; S[2] += b[CW]; S[3] += b[CR]; S[4] += b[REQ];
+    h1 += b[H1];
+    if (b[SIDE]) { sideTok += t; sideReq += b[REQ]; }
+    add(perDay, b[D], b); add(byM, b[M], b); add(byP, b[P], b); add(byE, b[EFF], b);
+    hours[b[HOUR]] += t;
+    heat[weekday(b[D])][b[HOUR]] += t;
+  }
+  const total = sum4(S);
+  const first = cutoff || (rows.length ? rows[0][D] : today);
+  const last = range === 'all' && rows.length ? rows[rows.length - 1][D] : today;
+  const days = [];
+  for (let d = parseD(first); dstr(d) <= last; d = addDays(d, 1)) days.push(dstr(d));
+  const tools = new Map();
+  for (const [date, name, c] of DATA.tools) if (!cutoff || date >= cutoff) tools.set(name, (tools.get(name) || 0) + c);
+  const sessions = DATA.sessions.filter((s) => !cutoff || s.end.slice(0, 10) >= cutoff)
+    .sort((a, b) => sum4(b.tok) - sum4(a.tok));
+  return { range, cutoff, S, total, h1, sideTok, sideReq, perDay, byM, byP, byE, hours, heat, days, first, last,
+    tools: [...tools.entries()].sort((a, b) => b[1] - a[1]), sessions };
+}
+
+function badges() {
+  // 成就按全部记录算，不跟时间范围走
+  const all = compute('all');
+  const peakH = all.hours.indexOf(Math.max(...all.hours));
+  const habit = (peakH >= 20 || peakH <= 3) ? '夜猫子' : peakH <= 8 ? '早鸟' : peakH <= 12 ? '上午战士' : '下午茶选手';
+  const hit = hitOf(all.S);
+  let longest = null;
+  for (const s of DATA.sessions) {
+    const mins = (new Date(s.end) - new Date(s.start)) / 60000;
+    if (!longest || mins > longest.mins) longest = { mins, s };
+  }
+  const tool = all.tools[0];
+  const dates = [...all.perDay.keys()].sort();
+  let streak = 0, run = 0, prev = null;
+  for (const d of dates) {
+    run = prev && dstr(addDays(parseD(prev), 1)) === d ? run + 1 : 1;
+    streak = Math.max(streak, run);
+    prev = d;
+  }
+  const span = longest ? spanText(longest.s.start, longest.s.end) : null;
+  const club = all.total >= 1e9 ? '十亿俱乐部' : '亿元户';
+  return [
+    { ok: all.total > 0, title: habit, line: peakH + ' 点是一天里最旺的时候', bg: 'var(--white)', rot: -2 },
+    { ok: hit >= 95, title: '缓存大师', line: '命中率 ' + hit.toFixed(2) + '%', lock: '命中率到 95% 解锁', bg: 'var(--yellow)', rot: 1.5 },
+    { ok: !!longest && longest.mins >= 720, title: '马拉松选手', line: span ? '单个会话前后跨了 ' + span[0] + ' ' + span[1] : '', lock: '单个会话跨满 12 小时解锁', bg: 'var(--mint)', rot: -1 },
+    { ok: !!tool && tool[1] >= 1000, title: tool ? tool[0] + ' 狂魔' : '工具狂魔', line: tool ? '用了 ' + num(tool[1]) + ' 次' : '', lock: '同一个工具用满 1,000 次解锁', bg: 'var(--pink)', rot: 2 },
+    { ok: streak >= 7, title: '全勤王', line: streak === dates.length ? '连续 ' + streak + ' 天，一天没断' : '最长连续 ' + streak + ' 天', lock: '连续用满 7 天解锁', bg: 'var(--sky)', rot: -1.5 },
+    { ok: all.total >= 1e8, title: club, line: '累计吞了 ' + fmt(all.total), lock: '累计吞满 1 亿解锁', bg: 'var(--white)', rot: 1 },
+  ];
+}
+
+// ---------------------------------------------------------------- 页面片段
+
+function header(extra) {
+  const meta = DATA.meta;
+  return `<header class="top">
+    <div class="brand">
+      <div class="logo cn">吞吐</div>
+      <div class="tag">我的 Token 都去哪了</div>
+      ${meta.demo ? '<div class="tag demo">演示数据</div>' : ''}
+    </div>
+    <div class="controls">${extra}</div>
+  </header>`;
+}
+function rangePills() {
+  const opts = [['all', '全部'], ['30', '近 30 天'], ['7', '近 7 天'], ['1', '今天']];
+  return `<div class="pills" role="group" aria-label="时间范围">${opts.map(([id, label]) =>
+    `<button type="button" class="pill" data-range="${id}" aria-pressed="${state.range === id}">${label}</button>`).join('')}</div>
+    <button type="button" class="pill go" data-act="rescan">${state.busy ? '扫描中…' : '重新扫描'}</button>`;
+}
+function footer() {
+  const meta = DATA.meta;
+  return `<footer><div>数据只在本机，不上传 · 读取 ${esc(meta.root)} · ${num(meta.sessions)} 个会话</div>
+    <div>扫描于 ${esc(when(meta.generated))} · tuntu ${esc(meta.version)}</div></footer>`;
+}
+function segs(parts, base) {
+  return parts.map(([name, v, color]) =>
+    `<div title="${esc(name)} ${fmt(v)}（${pct(v, base)}）" style="width:${(100 * v / (base || 1)).toFixed(3)}%;background:${color}"></div>`).join('');
+}
+function rankList(map, names, color, limit) {
+  const rows = [...map.entries()].map(([k, a]) => ({ name: names(k), a, t: sum4(a) })).sort((x, y) => y.t - x.t);
+  const all = rows.reduce((s, r) => s + r.t, 0);
+  let shown = rows.slice(0, limit);
+  if (rows.length > limit) {
+    const rest = rows.slice(limit).reduce((acc, r) => acc.map((v, i) => v + r.a[i]), [0, 0, 0, 0, 0]);
+    shown = shown.concat({ name: '其他 ' + (rows.length - limit) + ' 个', a: rest, t: sum4(rest) });
+  }
+  const max = shown.length ? Math.max(...shown.map((r) => r.t)) : 1;
+  return shown.map((r) => `<div class="rank">
+      <div class="top"><span class="nm">${esc(r.name)}</span><span class="vv">${fmt(r.t)} · ${pct(r.t, all, 1)}</span></div>
+      <div class="meter"><i style="width:${Math.max(1.5, 100 * r.t / max).toFixed(2)}%;background:${color}"></i></div>
+      <div class="sub">输出 ${fmt(r.a[1])} · 命中率 ${hitOf(r.a).toFixed(2)}% · ${num(r.a[4])} 次请求</div>
+    </div>`).join('') || '<div class="sub">这段时间没有记录</div>';
+}
+
+function dailyTile(c) {
+  const metric = state.metric;
+  const zero = [0, 0, 0, 0, 0];
+  const step = Math.max(1, Math.ceil(c.days.length / 92));
+  const groups = [];
+  for (let i = 0; i < c.days.length; i += step) {
+    const a = [0, 0, 0, 0, 0];
+    for (const d of c.days.slice(i, i + step)) (c.perDay.get(d) || zero).forEach((v, k) => { a[k] += v; });
+    groups.push({ date: c.days[i], a });
+  }
+  const val = (a) => metric === 'total' ? sum4(a) : metric === 'output' ? a[1] : metric === 'req' ? a[4] : (a[4] ? hitOf(a) : null);
+  const show = (v) => metric === 'req' ? num(v) + ' 次' : metric === 'hit' ? v.toFixed(1) + '%' : fmt(v);
+  const vals = groups.map((g) => val(g.a));
+  const real = vals.filter((v) => v !== null && v > 0);
+  const max = real.length ? Math.max(...real) : 1;
+  const floor = metric === 'hit' && real.length ? Math.max(0, Math.floor(Math.min(...real) / 5) * 5 - 5) : 0;
+  const peak = real.length ? vals.indexOf(max) : -1;
+  const every = Math.max(1, Math.ceil(groups.length / 8));
+  const gap = groups.length > 45 ? 2 : groups.length > 24 ? 4 : 6;
+  const cols = groups.map((g, i) => {
+    const v = vals[i];
+    const h = v ? Math.max(6, Math.round(200 * (v - floor) / ((max - floor) || 1))) : 0;
+    const tip = `${g.date}${step > 1 ? ' 起 ' + step + ' 天' : ''} · 全部 ${fmt(sum4(g.a))} · 输出 ${fmt(g.a[1])} · ${num(g.a[4])} 次请求`;
+    return `<div class="col"><div class="tg">${i === peak ? show(v) : ''}</div><div class="b${i === peak ? ' pk' : ''}${h ? '' : ' z'}" title="${esc(tip)}" style="height:${h}px"></div></div>`;
+  }).join('');
+  const labels = groups.map((g, i) => `<span>${i % every === 0 ? md(g.date) : ''}</span>`).join('');
+  const what = { total: '吞得最多', output: '写得最多', req: '请求最多', hit: '命中率最高' }[metric];
+  const caption = peak < 0 ? '这段时间没有记录。'
+    : `所选范围里${what}的${step > 1 ? '一段' : '一天'}是 ${md(groups[peak].date)}：${show(max)}。${metric === 'hit' ? '纵轴从 ' + floor + '% 起算。' : ''}`;
+  const opts = [['total', '全部'], ['output', '输出'], ['req', '请求'], ['hit', '命中率']];
+  return `<section class="tile daily">
+    <div class="head" style="align-items:center"><div class="h">每日吞吐</div>
+      <div class="pills" role="group" aria-label="指标">${opts.map(([id, label]) =>
+        `<button type="button" class="pill small" data-metric="${id}" aria-pressed="${metric === id}">${label}</button>`).join('')}</div></div>
+    <div class="scroll"><div style="min-width:${Math.min(520, 60 + groups.length * 22)}px;display:flex;flex-direction:column;gap:6px">
+      <div class="bars" style="gap:${gap}px">${cols}</div><div class="xl" style="gap:${gap}px">${labels}</div></div></div>
+    <div class="cap">${caption}</div>
+  </section>`;
+}
+
+function clockTile(c) {
+  const max = Math.max(...c.hours);
+  const peak = c.hours.indexOf(max);
+  const night = [20, 21, 22, 23, 0, 1, 2].reduce((s, h) => s + c.hours[h], 0);
+  const bars = c.hours.map((v, h) => {
+    const len = max ? Math.round(8 + 74 * v / max) : 8;
+    return `<div class="hb${max && h === peak ? ' pk' : ''}" title="${h}:00 · ${fmt(v)}" style="height:${len}px;transform:rotate(${180 + h * 15}deg) translateY(36px)"></div>`;
+  }).join('');
+  return `<section class="tile clockt">
+    <div class="h" style="align-self:flex-start">你的 24 小时</div>
+    <div class="clock" role="img" aria-label="24 小时用量钟面，${peak} 点最高">${bars}
+      <div class="mid">${max ? peak + ' 点' : '—'}</div>
+      <div class="l" style="left:50%;top:-4px;transform:translateX(-50%)">0</div>
+      <div class="l" style="right:-4px;top:50%;transform:translateY(-50%)">6</div>
+      <div class="l" style="left:50%;bottom:-4px;transform:translateX(-50%)">12</div>
+      <div class="l" style="left:-8px;top:50%;transform:translateY(-50%)">18</div>
+    </div>
+    <div class="cap">${max ? `${pct(night, c.total, 0)} 的 token 花在晚 8 点到凌晨 3 点。` : '这段时间没有记录。'}</div>
+  </section>`;
+}
+
+function heatTile(c) {
+  const max = Math.max(...c.heat.flat());
+  let pw = 0, ph = 0;
+  c.heat.forEach((row, w) => row.forEach((v, h) => { if (v > c.heat[pw][ph]) { pw = w; ph = h; } }));
+  const rows = c.heat.map((row, w) => `<div class="hr"><div class="wl">${WK[w]}</div>${row.map((v, h) =>
+    `<div class="c" title="${WK[w]} ${h}:00 · ${fmt(v)}"${v ? ` style="background:rgba(53,80,232,${(0.14 + 0.86 * v / max).toFixed(2)})"` : ''}></div>`).join('')}</div>`).join('');
+  const hl = Array.from({ length: 24 }, (_, h) => `<div class="hl">${h % 3 === 0 ? h : ''}</div>`).join('');
+  return `<section class="tile" style="flex:3 1 520px">
+    <div class="head"><div class="h">一周作息表</div><div class="sub">星期 × 小时，越深吞得越多</div></div>
+    <div class="scroll"><div class="heat">${rows}<div class="hr" style="margin-top:2px"><div class="wl"></div>${hl}</div></div></div>
+    <div class="cap">${max ? `最猛的一小时是${WK[pw]} ${ph} 点。` : '这段时间没有记录。'}</div>
+  </section>`;
+}
+
+function effortTile(c) {
+  const order = ['max', 'xhigh', 'high', 'medium', 'low', null];
+  const names = { max: '最大', xhigh: '超高', high: '高', medium: '中', low: '低' };
+  const palette = ['var(--yellow)', 'var(--orange)', 'var(--ink)', 'var(--blue)', 'var(--sky)', 'var(--white)'];
+  const keys = [...c.byE.keys()];
+  if (!keys.some((k) => k !== null)) return '';
+  keys.sort((a, b) => (order.indexOf(a) < 0 ? 9 : order.indexOf(a)) - (order.indexOf(b) < 0 ? 9 : order.indexOf(b)));
+  const items = keys.map((k) => ({ name: k === null ? '未记录' : (names[k] || k), a: c.byE.get(k), color: palette[Math.max(0, order.indexOf(k))] }));
+  return `<section class="tile" style="flex:2 1 360px;gap:16px">
+    <div class="h">用了多大的劲</div><div class="sub">按推理强度分的 token</div>
+    <div class="stack">${segs(items.map((e) => [e.name, sum4(e.a), e.color]), c.total)}</div>
+    ${items.map((e) => `<div class="erow"><span class="sw" style="margin:0;background:${e.color}"></span><div class="nm">${esc(e.name)}</div>
+      <div>${pct(sum4(e.a), c.total, 1)}</div><div class="dt">${fmt(sum4(e.a))} · ${num(e.a[4])} 次</div></div>`).join('')}
+  </section>`;
+}
+
+// ---------------------------------------------------------------- 总览页
+
+function renderHome() {
+  const c = compute(state.range);
+  const S = c.S, total = c.total;
+  const allIn = S[0] + S[2] + S[3], fresh = S[0] + S[1] + S[2];
+  if (!DATA.buckets.length) {
+    app.innerHTML = header(rangePills()) + `<section class="tile empty"><div class="h">还没找到用量记录</div>
+      <div class="cap">在 ${esc(DATA.meta.root)} 里没有读到 Claude Code 的会话日志。可以用 <b>--dir</b> 指定目录，或者用 <b>--demo</b> 先看看演示。</div></section>` + footer();
+    return;
+  }
+  const big = total >= 1e8 ? [(total / 1e8).toFixed(2), '亿'] : total >= 1e4 ? [(total / 1e4).toFixed(total >= 1e6 ? 0 : 1), '万'] : [num(total), ''];
+  const lead = { all: `自 ${+c.first.slice(5, 7)} 月 ${+c.first.slice(8, 10)} 日起，你一共吞了`, '30': '近 30 天，你一共吞了', '7': '近 7 天，你一共吞了', '1': '今天，你一共吞了' }[c.range];
+  const nd = c.days.length || 1;
+  const chips = [`平均每秒 ${num(total / (nd * 86400))} 个，昼夜不停`, `日均 ${fmt(total / nd)}`, `${num(S[4])} 次请求`, `写出 ${fmt(S[1])}`];
+  const ratio = S[1] ? Math.round(allIn / S[1]) : 0;
+  const per = Math.max(1, Math.ceil(ratio / 480));
+  const dots = '<i></i>'.repeat(Math.round(ratio / per)) + '<i class="w"></i>';
+  const hit = allIn ? 100 * S[3] / allIn : 0;
+  const cells = Math.floor(hit);
+  const waffle = Array.from({ length: 100 }, (_, i) => `<i${i < cells ? ' class="on"' : ''}></i>`).join('');
+  const parts = [['缓存读取', S[3], COLORS.cr, '每轮重读的历史上下文'], ['缓存写入', S[2], COLORS.cw, '第一次写进缓存的内容'],
+    ['输出', S[1], COLORS.out, '模型写出的回复和代码'], ['新输入', S[0], COLORS.inp, '没走缓存的输入']];
+  const facts = [];
+  if (c.h1 && S[2]) facts.push(`<div class="chip s" style="background:var(--sky)">缓存写入里 ${pct(c.h1, S[2], 1)} 是 1 小时档</div>`);
+  if (c.sideTok) facts.push(`<div class="chip s" style="background:var(--pink)">子代理吞了 ${pct(c.sideTok, total, 1)}（${fmt(c.sideTok)}，${num(c.sideReq)} 次请求）</div>`);
+  const toolMax = c.tools.length ? c.tools[0][1] : 1;
+  const medals = ['var(--yellow)', 'var(--sky)', 'var(--pink)'];
+  const top = c.sessions.slice(0, 10);
+  const sMax = top.length ? sum4(top[0].tok) : 1;
+  const effort = effortTile(c);
+
+  app.innerHTML = header(rangePills()) + `
+  <div class="row">
+    <section class="tile hero">
+      <div class="h">${lead}</div>
+      <div class="line"><div class="n">${big[0]}</div><div class="u cn">${big[1]}</div><div class="t">个 token</div></div>
+      <div class="chips">${chips.map((t) => `<div class="chip">${t}</div>`).join('')}</div>
+    </section>
+    <section class="tile side ratio">
+      <div class="h">读写比</div>
+      <div class="n">${ratio ? num(ratio) + ' : 1' : '—'}</div>
+      <div class="dots" role="img" aria-label="浅色方块代表读入，橙色方块代表写出">${dots}</div>
+      <div class="cap">${ratio ? `每写出 1 个 token（橙色那一格），先读了 ${num(ratio)} 个${per > 1 ? `（每个浅色格代表 ${per} 个）` : ''}。读的几乎全走缓存。` : '这段时间没有输出。'}</div>
+    </section>
+  </div>
+  <div class="row">
+    <section class="tile hit">
+      <div class="h">缓存命中率</div>
+      <div class="n">${allIn ? hit.toFixed(2) + '%' : '—'}</div>
+      <div class="waffle" role="img" aria-label="100 格华夫图，实心格为命中">${waffle}</div>
+      <div class="cap">100 格里中了 ${cells} 格</div>
+      <div class="sub" style="color:#1D3B2C">= 缓存读取 ÷ 全部输入</div>
+    </section>
+    ${dailyTile(c)}
+    ${clockTile(c)}
+  </div>
+  <section class="badges" aria-label="成就">${badges().map((b) => b.ok
+    ? `<div class="badge" style="background:${b.bg};transform:rotate(${b.rot}deg)"><div class="k">已解锁</div><div class="ti cn">${esc(b.title)}</div><div class="li">${esc(b.line)}</div></div>`
+    : `<div class="badge locked"><div class="k">未解锁</div><div class="ti cn">${esc(b.title)}</div><div class="li">${esc(b.lock || '')}</div></div>`).join('')}</section>
+  <div class="row">
+    <section class="tile" style="flex:3 1 520px;gap:16px">
+      <div class="h">吞下去的都是什么</div>
+      <div><div class="sub" style="margin-bottom:8px">全部 token</div><div class="stack">${segs(parts, total)}</div></div>
+      <div><div class="sub" style="margin-bottom:8px">去掉缓存读取，放大看剩下的 ${pct(fresh, total)}</div><div class="stack">${segs(parts.slice(1), fresh)}</div></div>
+      <div class="legend">${parts.map(([name, v, color, desc]) => `<div class="it"><span class="sw" style="background:${color}"></span>
+        <div><b>${name} · ${fmt(v)}</b><span>${pct(v, total)} · ${desc}</span></div></div>`).join('')}</div>
+      ${facts.length ? `<div class="chips" style="margin-top:0">${facts.join('')}</div>` : ''}
+    </section>
+    ${effort}
+  </div>
+  <div class="row">
+    <section class="tile" style="flex:1 1 420px;gap:18px"><div class="h">谁在干活（模型）</div>${rankList(c.byM, (k) => modelName(DATA.models[k]), 'var(--yellow)', 6)}</section>
+    <section class="tile" style="flex:1 1 420px;gap:18px"><div class="h">花在哪了（项目）</div>${rankList(c.byP, (k) => DATA.projects[k], 'var(--blue)', 8)}</section>
+  </div>
+  <div class="row">
+    ${heatTile(c)}
+    <section class="tile" style="flex:2 1 360px;gap:12px">
+      <div class="head"><div class="h">最爱用的工具</div><div class="sub">调用次数</div></div>
+      ${c.tools.slice(0, 10).map(([name, n]) => `<div class="trow"><div class="nm" title="${esc(name)}">${esc(name)}</div>
+        <div class="meter thin"><i style="width:${Math.max(1.5, 100 * n / toolMax).toFixed(1)}%;background:var(--orange)"></i></div><div class="ct">${num(n)}</div></div>`).join('') || '<div class="sub">这段时间没有工具调用</div>'}
+    </section>
+  </div>
+  <section class="tile" style="gap:16px">
+    <div class="head"><div class="h">会话马拉松榜</div><div class="sub">点一行看这个会话的上下文过山车</div></div>
+    <div class="scroll"><div class="slist">${top.map((s, i) => {
+      const sp = spanText(s.start, s.end);
+      return `<a class="srow" href="#/s/${encodeURIComponent(s.id)}">
+        <div class="medal" style="background:${medals[i] || 'var(--white)'}">${i + 1}</div>
+        <div class="ell" title="${esc(DATA.projects[s.p])}">${esc(DATA.projects[s.p])}</div>
+        <div class="lt">${when(s.start)} → ${when(s.end)}</div>
+        <div>${sp[0]} ${sp[1]}</div>
+        <div class="meter thin"><i style="width:${(100 * sum4(s.tok) / sMax).toFixed(1)}%;background:var(--blue)"></i></div>
+        <div class="r" style="font-weight:800">${fmt(sum4(s.tok))}</div>
+        <div class="r lt">${hitOf(s.tok).toFixed(2)}%</div>
+        <div class="r lt">${num(s.req)} 次</div></a>`;
+    }).join('') || '<div class="sub">这段时间没有会话</div>'}</div></div>
+    <div class="sub">续接或分叉出来的会话会带着前半段记录，所以各会话相加会超过总量。</div>
+  </section>` + footer();
+}
+
+// ---------------------------------------------------------------- 会话详情页
+
+async function renderSession(id) {
+  const ranked = [...DATA.sessions].sort((a, b) => sum4(b.tok) - sum4(a.tok));
+  const idx = ranked.findIndex((s) => s.id === id);
+  const back = '<a class="pill back" href="#/">← 返回总览</a>';
+  if (idx < 0) {
+    app.innerHTML = header(back) + '<section class="tile empty"><div class="h">找不到这个会话</div><div class="cap">它可能在重新扫描后不见了。</div></section>' + footer();
+    return;
+  }
+  const s = ranked[idx];
+  let det = { n: 0, per: 1, ctx: [], drop: [] };
+  try {
+    const r = await fetch('/api/session?id=' + encodeURIComponent(id));
+    if (r.ok) det = await r.json();
+  } catch (e) { /* 详情图画不出来时，其余部分照常显示 */ }
+  if (location.hash !== '#/s/' + encodeURIComponent(id)) return;
+
+  const total = sum4(s.tok);
+  const allIn = s.tok[0] + s.tok[2] + s.tok[3];
+  const sp = spanText(s.start, s.end);
+  const all = compute('all');
+  const allRatio = all.S[1] ? Math.round((all.S[0] + all.S[2] + all.S[3]) / all.S[1]) : 0;
+  const ratio = s.tok[1] ? Math.round(allIn / s.tok[1]) : 0;
+  const mainReq = s.req - s.subReq, mainTok = total - s.subTok;
+  const top = Math.max(1, ...det.ctx);
+  const unit = top >= 2e5 ? 2e5 : top >= 4e4 ? 4e4 : 1e4;
+  const yMax = Math.ceil(top / unit) * unit;
+  const cols = det.ctx.map((v, i) => `<div class="col"><div class="tg">${det.drop[i] ? '压缩' : ''}</div>
+    <div class="b${det.drop[i] ? ' pk' : ''}" title="第 ${num(i * det.per + 1)} 次请求附近 · 上下文约 ${fmt(v)}${det.drop[i] ? ' · 这一段压缩过' : ''}" style="height:${Math.max(2, Math.round(250 * v / yMax))}px"></div></div>`).join('');
+  const parts = [['缓存读取', s.tok[3], COLORS.cr], ['缓存写入', s.tok[2], COLORS.cw], ['输出', s.tok[1], COLORS.out], ['新输入', s.tok[0], COLORS.inp]];
+  const kpis = [
+    ['缓存命中率', hitOf(s.tok).toFixed(2) + '%', '整体是 ' + hitOf(all.S).toFixed(2) + '%', 'var(--mint)'],
+    ['写出', fmt(s.tok[1]), '平均每次请求 ' + num(s.tok[1] / (s.req || 1)) + ' 个', 'var(--white)'],
+    ['每轮读取', fmt(s.tok[3] / (s.req || 1)), '缓存读取 ÷ 请求次数', 'var(--white)'],
+    ['读写比', ratio ? num(ratio) + ' : 1' : '—', '整体是 ' + (allRatio ? num(allRatio) + ' : 1' : '—'), 'var(--sky)'],
+  ];
+  app.innerHTML = header(back + `<div class="tag" style="transform:none;font-size:15px">马拉松榜 第 ${idx + 1} 名 · ${esc(DATA.projects[s.p])} · ${esc(modelName(DATA.models[s.m]))}</div>`) + `
+  <div class="row">
+    <section class="tile hero">
+      <div class="h">这个会话前后跨了</div>
+      <div class="line"><div class="n">${sp[0]}</div><div class="u cn">${sp[1]}</div><div class="t">吞了 ${fmt(total)}个 token</div></div>
+      <div class="chips"><div class="chip">${when(s.start)} → ${when(s.end)}</div><div class="chip">${num(s.req)} 次请求</div><div class="chip">占全部用量的 ${pct(total, all.total, 1)}</div></div>
+    </section>
+    <section class="tile side" style="background:var(--pink);gap:10px">
+      <div class="h">上下文最高涨到</div>
+      <div class="n">${fmt(s.peak)}</div>
+      <div class="cap">${s.drops ? `中途自动压缩了 ${s.drops} 次，每次回落后再重新往上爬。` : '中途没有触发过压缩。'}</div>
+    </section>
+  </div>
+  <section class="kpis" aria-label="会话指标">${kpis.map(([k, v, sub, bg]) =>
+    `<div class="kpi" style="background:${bg}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub}</div></div>`).join('')}</section>
+  <section class="tile">
+    <div class="head"><div class="h">上下文过山车</div><div class="sub">每根柱子约 ${num(det.per)} 次请求 · 橙色 = 这一段压缩过</div></div>
+    ${det.ctx.length ? `<div class="scroll"><div class="ctxwrap">
+      <div class="yax"><span>${fmt(yMax)}</span><span>${fmt(yMax / 2)}</span><span>0</span></div>
+      <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:6px">
+        <div class="bars ctx">${cols}</div>
+        <div style="display:flex;justify-content:space-between" class="sub"><span>第 1 次请求</span><span>第 ${num(Math.ceil(det.n / 2))} 次</span><span>第 ${num(det.n)} 次</span></div>
+      </div></div></div>` : '<div class="sub">这个会话没有主线请求。</div>'}
+    <div class="cap">每次请求都要把当时的整段上下文读一遍，所以柱子越高，那一段每轮就越贵。</div>
+  </section>
+  <div class="row">
+    <section class="tile" style="flex:3 1 460px;gap:16px">
+      <div class="h">这一单吞了什么</div>
+      ${parts.map(([name, v, color]) => `<div class="rank"><div class="top" style="font-size:15px;font-weight:700">
+        <span style="display:flex;align-items:center;gap:10px"><span class="sw" style="margin:0;background:${color}"></span>${name}</span><span>${fmt(v)} · ${pct(v, total)}</span></div>
+        <div class="meter"><i style="width:${Math.max(1, 100 * v / (total || 1)).toFixed(2)}%;background:${color};border-right:0"></i></div></div>`).join('')}
+    </section>
+    <section class="tile" style="flex:2 1 340px;gap:16px">
+      <div class="h">主线 vs 子代理</div>
+      <div class="duo">
+        <div style="background:var(--sky)"><div class="k">主线对话</div><div class="v">${fmt(mainTok)}</div><div class="s">${num(mainReq)} 次${mainReq ? ' · 每次约 ' + fmt(mainTok / mainReq) : ''}</div></div>
+        <div style="background:var(--mint)"><div class="k">子代理</div><div class="v">${fmt(s.subTok)}</div><div class="s">${num(s.subReq)} 次${s.subReq ? ' · 每次约 ' + fmt(s.subTok / s.subReq) : ''}</div></div>
+      </div>
+      <div class="cap">子代理每次从干净的上下文起步，单次请求通常比主线便宜。</div>
+      <div class="tip">省 token 小贴士：换任务时开个新会话，比在越来越长的会话里接着聊更省。</div>
+    </section>
+  </div>` + footer();
+  window.scrollTo(0, 0);
+}
+
+// ---------------------------------------------------------------- 启动
+
+function route() {
+  if (!DATA) return;
+  const m = location.hash.match(/^#\/s\/(.+)$/);
+  if (m) renderSession(decodeURIComponent(m[1]));
+  else renderHome();
+}
+async function load(rescan) {
+  state.busy = true;
+  if (DATA) route();
+  try {
+    const r = await fetch('/api/data' + (rescan ? '?rescan=1' : ''));
+    DATA = await r.json();
+  } catch (e) {
+    if (!DATA) app.innerHTML = '<div class="tile empty"><div class="h">连不上本机服务</div><div class="cap">请确认 tuntu 还在运行，然后刷新页面。</div></div>';
+  }
+  state.busy = false;
+  route();
+}
+app.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.range) { state.range = b.dataset.range; route(); }
+  else if (b.dataset.metric) { state.metric = b.dataset.metric; route(); }
+  else if (b.dataset.act === 'rescan' && !state.busy) load(true);
+});
+window.addEventListener('hashchange', route);
+load(false);
+</script>
+</body>
+</html>
