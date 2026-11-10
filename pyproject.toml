@@ -22,6 +22,10 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/shnehna/tuntu"
+Issues = "https://github.com/shnehna/tuntu/issues"
+
 [project.scripts]
 tuntu = "tuntu.cli:main"
 

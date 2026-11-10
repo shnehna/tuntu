@@ -27,8 +27,8 @@ tuntu
 也可以直接从源码运行，不用安装：
 
 ```bash
-git clone <本仓库地址>
-cd <仓库目录>
+git clone https://github.com/shnehna/tuntu.git
+cd tuntu
 python3 -m tuntu
 ```
 
