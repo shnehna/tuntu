@@ -4,6 +4,14 @@
 
 A local, zero-dependency dashboard for your Claude Code token usage. It reads the session logs already on your machine and shows them in a playful one-page dashboard. Nothing leaves your computer. (The UI is in Chinese.)
 
+![吞吐总览：总量、读写比、缓存命中率、每日吞吐、24 小时钟和成就贴纸](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/overview.png)
+
+点进任意一个会话，可以看到上下文一路上涨、被自动压缩、再上涨的过程：
+
+![会话详情：上下文过山车](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/session.png)
+
+（截图用的是 `--demo` 模式的虚构数据。）
+
 ## 运行
 
 需要 Python 3.9 或更高版本，没有任何第三方依赖。
