@@ -1,28 +1,28 @@
-# 吞吐 tuntu
+# tuntu (吞吐)
 
-我的 Token 都去哪了？——一个本机运行的 Claude Code token 用量看板。
+Where did all my tokens go? A local dashboard for your Claude Code token usage.
 
-A local, zero-dependency dashboard for your Claude Code token usage. It reads the session logs already on your machine and shows them in a playful one-page dashboard. Nothing leaves your computer. (The UI is in Chinese.)
+tuntu reads the session logs Claude Code already keeps on your machine and shows them in a playful one-page dashboard. It has no dependencies, and nothing leaves your computer. The name is Chinese for "throughput", and the dashboard UI is in Chinese.
 
-![吞吐总览：总量、读写比、缓存命中率、每日吞吐、24 小时钟和成就贴纸](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/overview.png)
+![tuntu overview: total tokens, read/write ratio, cache hit rate, daily usage, 24-hour clock, and achievement stickers](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/overview.png)
 
-点进任意一个会话，可以看到上下文一路上涨、被自动压缩、再上涨的过程：
+Open any session to watch its context grow, get auto-compacted, and grow again:
 
-![会话详情：上下文过山车](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/session.png)
+![Session detail: the context roller coaster](https://raw.githubusercontent.com/shnehna/tuntu/main/docs/session.png)
 
-（截图用的是 `--demo` 模式的虚构数据。）
+(The screenshots use synthetic data from `--demo` mode.)
 
-## 运行
+## Run it
 
-需要 Python 3.9 或更高版本，没有任何第三方依赖。
+Requires Python 3.9 or later. There are no third-party dependencies.
 
-不用安装，一行运行（需要 [uv](https://docs.astral.sh/uv/)）：
+Run it without installing (needs [uv](https://docs.astral.sh/uv/)):
 
 ```bash
 uvx tuntu
 ```
 
-或者装成命令：
+Or install it as a command:
 
 ```bash
 pipx install tuntu
@@ -32,7 +32,7 @@ pipx install tuntu
 tuntu
 ```
 
-也可以直接从源码运行，不用安装：
+Or run it straight from source:
 
 ```bash
 git clone https://github.com/shnehna/tuntu.git
@@ -40,72 +40,72 @@ cd tuntu
 python3 -m tuntu
 ```
 
-它会扫描 `~/.claude/projects` 下的会话日志，然后在浏览器里打开 `http://127.0.0.1:8787/`。
+It scans the session logs under `~/.claude/projects` and opens `http://127.0.0.1:8787/` in your browser.
 
-没有日志，或者只是想先看看长什么样（也适合截图）：
+No logs yet, or just want to see what it looks like? Demo mode is also the safe way to take screenshots:
 
 ```bash
 tuntu --demo
 ```
 
-| 参数 | 作用 |
+| Option | What it does |
 |---|---|
-| `--demo` | 用虚构数据演示，不读取任何日志 |
-| `--dir PATH` | 指定日志目录（默认 `~/.claude/projects`，也会识别 `CLAUDE_CONFIG_DIR`） |
-| `--port N` | 端口，默认 8787，被占用时自动往后找 |
-| `--no-open` | 不自动打开浏览器 |
-| `--web-fonts` | 从 Google Fonts 加载展示字体，观感更接近设计稿（会产生外网请求） |
-| `--json` | 把聚合结果打印成 JSON 后退出 |
-| `--version` | 显示版本号 |
+| `--demo` | Show synthetic data; no logs are read |
+| `--dir PATH` | Log directory (default `~/.claude/projects`; `CLAUDE_CONFIG_DIR` is also honored) |
+| `--port N` | Port, default 8787; the next free port is used if it is taken |
+| `--no-open` | Do not open the browser |
+| `--web-fonts` | Load display fonts from Google Fonts for a look closer to the original design (makes external requests) |
+| `--json` | Print the aggregated data as JSON and exit |
+| `--version` | Print the version |
 
-## 能看到什么
+## What you get
 
-- **总量**：一共吞了多少 token，平均每秒多少，日均多少。
-- **读写比**：每写出 1 个 token，先读了多少个。
-- **缓存命中率**：缓存读取 ÷ 全部输入。
-- **每日吞吐**：可以切换看全部、输出、请求次数或命中率。
-- **24 小时钟、一周作息表**：你什么时候用得最多。
-- **构成**：缓存读取、缓存写入、输出、新输入各占多少；缓存写入里 1 小时档的占比；子代理的占比。
-- **推理强度、模型、项目、工具**：各自的分布。
-- **会话马拉松榜**：最耗 token 的会话。点进去能看到上下文长度随对话增长、被自动压缩的过程。
-- **成就贴纸**：夜猫子、缓存大师、马拉松选手……
+- **Total**: how many tokens you have used, the average per second, and the daily average.
+- **Read/write ratio**: how many tokens were read for every token written.
+- **Cache hit rate**: cache reads ÷ all input.
+- **Daily usage**: switch between all tokens, output, request count, and hit rate.
+- **24-hour clock and weekly heatmap**: when you use it most.
+- **Composition**: the split between cache reads, cache writes, output, and uncached input; the share of cache writes in the 1-hour tier; the share used by subagents.
+- **Effort, model, project, tool**: the breakdown by each.
+- **Session leaderboard**: the sessions that used the most tokens. Open one to see its context length grow and get auto-compacted.
+- **Achievement stickers**: Night Owl, Cache Master, Marathon Runner, and more.
 
-时间范围可以切换：全部、近 30 天、近 7 天、今天。
+The time range can be set to all time, the last 30 days, the last 7 days, or today.
 
-## 隐私
+## Privacy
 
-- 服务只监听 `127.0.0.1`，并且拒绝 Host 不是本机的请求。
-- 默认不发出任何外网请求，页面带有禁止外部资源的 CSP。只有加了 `--web-fonts` 才会去请求 Google Fonts。
-- 只取用日志里的用量数字、时间、模型名、工具名和工作目录名；对话内容不会被保存、显示或发送到任何地方。
-- 页面上的项目只显示目录名，不显示完整路径；日志目录里的家目录显示为 `~`。
-- 不写任何文件，不做缓存，关掉就什么都不留。
+- The server listens on `127.0.0.1` only and rejects requests whose Host header is not local.
+- No external requests are made by default, and the page ships with a CSP that blocks external resources. Google Fonts is contacted only if you pass `--web-fonts`.
+- Only usage numbers, timestamps, model names, tool names, and working directory names are taken from the logs. Conversation content is never stored, displayed, or sent anywhere.
+- Projects are shown by directory name only, never the full path. Your home directory is shown as `~`.
+- Nothing is written to disk and nothing is cached. Close it and nothing is left behind.
 
-分享截图前请留意：项目名和工具名来自你自己的机器。想要一张不含个人信息的图，用 `--demo`。
+Before sharing a screenshot, remember that project names and tool names come from your own machine. For an image with no personal details, use `--demo`.
 
-## 数字是怎么算的
+## How the numbers are calculated
 
-- 数据来自 Claude Code 写在本机的会话日志（`*.jsonl`）里每次请求的 `usage` 字段。
-- 同一条消息在日志里会出现多行，按消息去重后再累加。
-- 续接或分叉出来的会话会带着前半段记录。算总量时每条消息只算一次；但会话榜里每个会话按它自己的全部记录算，所以各会话相加会超过总量。
-- 项目按会话启动时的目录归类，worktree 里的会话归到原项目。
-- “会话跨度”是第一次请求到最后一次请求之间的时间，中间可能隔了很久没用。
-- 时间按本机时区显示。
-- Claude Code 默认只保留一段时间的日志（由 `cleanupPeriodDays` 设置决定），更早的用量已经不在本机，这里也就看不到。
-- 这里只统计本机的 Claude Code，不包含 claude.ai 网页或手机上的对话。
-- 这些数字是从本机日志估算的，不是账单。以官方的用量页面为准。
+- The data comes from the `usage` field of each request in the session logs (`*.jsonl`) that Claude Code writes locally.
+- A single message can appear on several log lines. Messages are deduplicated before they are summed.
+- Resumed or forked sessions carry a copy of the earlier history. Totals count each message once, but the leaderboard counts each session's full history, so the sessions add up to more than the total.
+- Projects are grouped by the directory the session started in. Sessions in a worktree are grouped under the original project.
+- A session's span is the time from its first request to its last, which can include long idle gaps.
+- Times are shown in your local time zone.
+- Claude Code keeps logs for a limited time (the `cleanupPeriodDays` setting). Older usage is no longer on your machine, so it cannot be shown here.
+- Only Claude Code on this machine is counted. Conversations on claude.ai or the mobile apps are not included.
+- These numbers are estimates from local logs, not a bill. The official usage page is the source of truth.
 
-## 目录结构
+## Layout
 
 ```
-tuntu/cli.py           扫描日志、聚合、本机 HTTP 服务（只用标准库）
-tuntu/web/index.html   页面（单文件，原生 JS，无依赖）
-pyproject.toml         打包配置
+tuntu/cli.py           log scanning, aggregation, and the local HTTP server (standard library only)
+tuntu/web/index.html   the page (a single file, plain JavaScript, no dependencies)
+pyproject.toml         packaging configuration
 ```
 
-## 发布新版本（维护者）
+## Releasing a new version (maintainers)
 
-1. 改 `tuntu/__init__.py` 里的 `__version__`。
-2. 构建并上传：
+1. Update `__version__` in `tuntu/__init__.py`.
+2. Build and upload:
 
 ```bash
 uv build
@@ -115,10 +115,10 @@ uv build
 uv publish
 ```
 
-## 说明
+## Disclaimer
 
-这是个人项目，与 Anthropic 无关。Claude 和 Claude Code 是 Anthropic 的商标。
+This is a personal project and is not affiliated with Anthropic. Claude and Claude Code are trademarks of Anthropic.
 
-## 许可证
+## License
 
-MIT，见 [LICENSE](LICENSE)。
+MIT. See [LICENSE](LICENSE).
